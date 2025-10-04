@@ -60,13 +60,70 @@ export default {
     }
   },
 
+  async mounted() {
+    await this.fetchProjects()
+  },
+
   methods: {
+    async fetchProjects() {
+      try {
+        const response = await fetch('http://localhost:3000/api/projects')
+        const data = await response.json()
+
+        if (data.success) {
+          this.items = data.data.map(project => ({
+            id: project._id,
+            text: project.name,
+            color: project.color,
+            isEditing: false,
+            description: project.description,
+            icon: project.icon
+          }))
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération des projets:', error)
+      }
+    },
+
+    async saveProject(item) {
+      try {
+        const projectData = {
+          name: item.text,
+          color: item.color,
+          description: item.description || '',
+          icon: item.icon || '📁'
+        }
+
+        const response = await fetch('http://localhost:3000/api/projects', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(projectData)
+        })
+
+        const data = await response.json()
+
+        if (data.success) {
+          // Mettre à jour l'ID avec celui de la base de données
+          item.id = data.data._id
+          console.log('Projet sauvegardé avec succès!')
+        } else {
+          console.error('Erreur lors de la sauvegarde:', data.message)
+        }
+      } catch (error) {
+        console.error('Erreur lors de la sauvegarde du projet:', error)
+      }
+    },
+
     addItem() {
       const newItem = {
-        id: Date.now(),
+        id: Date.now(), // Temporaire, sera remplacé par l'ID MongoDB
         text: 'Nouveau projet',
         isEditing: true,
-        color: this.colors[this.items.length % this.colors.length]
+        color: this.colors[this.items.length % this.colors.length],
+        description: '',
+        icon: '📁'
       }
       this.items.push(newItem)
       this.$nextTick(() => {
@@ -92,11 +149,14 @@ export default {
       })
     },
 
-    finishEditing(item) {
+    async finishEditing(item) {
       if (item.text.trim() === '') {
         item.text = 'Nouveau projet'
       }
       item.isEditing = false
+
+      // Sauvegarder le projet en base de données
+      await this.saveProject(item)
     }
   }
 }
@@ -355,7 +415,6 @@ export default {
   height: 16px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .arc-sidebar {
     width: 60px;
