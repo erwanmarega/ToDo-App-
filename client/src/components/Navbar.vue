@@ -1,5 +1,6 @@
+
 <template>
-  <div class="arc-sidebar">
+ <div class="arc-sidebar">
     <div class="arc-traffic-lights">
       <div class="arc-light arc-light-red"></div>
       <div class="arc-light arc-light-yellow"></div>
@@ -11,7 +12,7 @@
         <div class="arc-avatar-gradient"></div>
       </div>
     </div>
-<!-- Mes projets (professionnel etc...)-->
+
     <div class="arc-section">
       <div class="arc-section-header-container">
         <svg class="arc-section-icon-folder" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
@@ -42,15 +43,30 @@
             <span v-else class="arc-tab-title" @dblclick="startEditing(item)">
               {{ item.text }}
             </span>
+            <svg
+              class="arc-delete-icon"
+              @click="deleteItem(item)"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
+            </svg>
           </div>
         </div>
       </div>
     </div>
   </div>
+
 </template>
 
 <script>
+
 export default {
+  
   name: 'Navbar',
 
   data() {
@@ -87,6 +103,13 @@ export default {
 
     async saveProject(item) {
       try {
+        const isNewProject = typeof item.id === 'number'
+
+        if (!isNewProject) {
+          console.log('Projet déjà sauvegardé, pas de création')
+          return
+        }
+
         const projectData = {
           name: item.text,
           color: item.color,
@@ -105,11 +128,10 @@ export default {
         const data = await response.json()
 
         if (data.success) {
-          // Mettre à jour l'ID avec celui de la base de données
           item.id = data.data._id
-          console.log('Projet sauvegardé avec succès!')
+          console.log('Projet créé avec succès!')
         } else {
-          console.error('Erreur lors de la sauvegarde:', data.message)
+          console.error('Erreur lors de la création:', data.message)
         }
       } catch (error) {
         console.error('Erreur lors de la sauvegarde du projet:', error)
@@ -118,7 +140,7 @@ export default {
 
     addItem() {
       const newItem = {
-        id: Date.now(), // Temporaire, sera remplacé par l'ID MongoDB
+        id: Date.now(), 
         text: 'Nouveau projet',
         isEditing: true,
         color: this.colors[this.items.length % this.colors.length],
@@ -149,20 +171,37 @@ export default {
       })
     },
 
+    async deleteItem(item) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/projects/${item.id}`, {
+          method: 'DELETE'
+        })
+
+        const data = await response.json()
+
+        if (data.success) {
+          this.items = this.items.filter(i => i.id !== item.id)
+          console.log('Projet supprimé avec succès!')
+        } else {
+          console.error('Erreur lors de la suppression:', data.message)
+        }
+      } catch (error) {
+        console.error('Erreur lors de la suppression du projet:', error)
+      }
+    },
+
     async finishEditing(item) {
+      if (!item.isEditing) return
+
       if (item.text.trim() === '') {
         item.text = 'Nouveau projet'
       }
       item.isEditing = false
 
-      // Sauvegarder le projet en base de données
       await this.saveProject(item)
     }
   }
 }
-
-
-
 
 
 </script>
@@ -374,6 +413,25 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+}
+
+.arc-delete-icon {
+  width: 16px;
+  height: 16px;
+  color: #999;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.arc-tab-folder:hover .arc-delete-icon {
+  opacity: 1;
+}
+
+.arc-delete-icon:hover {
+  color: #ff5f56;
 }
 
 .arc-tab:hover .arc-tab-title {

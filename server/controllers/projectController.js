@@ -53,7 +53,32 @@ const addProject = async (req, res) => {
   }
 };
 
+const deleteProject = async (req, res) => {
+  try {
+    const deleted = await Project.findByIdAndDelete(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Projet non trouvé"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Projet supprimé avec succès"
+    });
+  } catch (error) {
+    console.error('Erreur lors de la suppression du projet:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la suppression du projet'
+    });
+  }
+};
+
 module.exports = {
   getAllProjects,
-  addProject
+  addProject,
+  deleteProject
 };
