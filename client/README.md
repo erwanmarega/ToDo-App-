@@ -1,5 +1,6 @@
-# Vue 3 + Vite
+# TODO App 
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+L'objectif de cette application est de retravailler ce que j'ai appris au travail. 
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+Le Css a été fait principalement par claude 
+
